@@ -50,3 +50,7 @@ http.createServer((req, res) => {
 - `rateLimit.init()` - Initializes all variables etc.
 - `rateLimit.inboundRequest(req: HttpClientRequest)` - Adds the request's IP address to the list of requests per minute
 - `rateLimit.isRateLimited(req: HttpClientRequest, requestLimitPerMinute: Number)` - Checks if the request's IP address occurs more than `requestLimitPerMinute` times in the above mentioned list
+
+<br><br><br>
+
+[Back to the Top](#http-ratelimit-v010-----)
