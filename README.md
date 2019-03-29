@@ -1,5 +1,5 @@
 # HTTP-RateLimit v0.1.0
-## This package counts the incoming client requests and determines whether a
+## This package counts the incoming client requests and determines whether a requesting client has reached a specified request threshold per minute
 
 <br><br><br><br><br><br><br><br><br>
 
