@@ -17,12 +17,14 @@ const rateLimit = require("http-ratelimit");
 
 
 http.createServer((req, res) => {
-
     rateLimit.inboundRequest(req); // this function has to run in the createServer callback, optimally at the very top of it
 
     if(rateLimit.isRateLimited(req, 20) === true) { // this checks whether the request is from an IP that has already sent x amount of requests in one minute. x is specified with the second attribute.
         // requester has sent more than 20 requests in one minute
-        // it is best to end the request here with status code 429
+        // it is best to end the request here with status code 429, like the following lines suggest:
+
+        res.writeHead(429, {"Content-Type": "text/plain; utf-8"});
+        res.end(`Too many requests per minute - max is 20`);
     }
     else {
         // requester has sent less than 20 requests in one minute
@@ -33,9 +35,11 @@ http.createServer((req, res) => {
     if(!err) {
         // server was successfully started
         rateLimit.init(); // HTTP-RateLimit has to be initialized before running any other function. It's best to put it right in here
+        console.log("success");
     }
     else {
         // error while starting server
+        console.log(err);
     }
 });
 ```
