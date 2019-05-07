@@ -1,4 +1,4 @@
-# HTTP-RateLimit v0.2.0 <br> [![](https://img.shields.io/github/license/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/blob/master/LICENSE) [![](https://img.shields.io/badge/JSDoc-v3.5.5-green.svg?style=flat-square)](http://usejsdoc.org/) [![](https://img.shields.io/github/issues/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/issues) [![](https://img.shields.io/github/stars/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/stargazers)
+# HTTP-RateLimit v0.2.1 <br> [![](https://img.shields.io/github/license/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/blob/master/LICENSE) [![](https://img.shields.io/badge/JSDoc-v3.5.5-green.svg?style=flat-square)](http://usejsdoc.org/) [![](https://img.shields.io/github/issues/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/issues) [![](https://img.shields.io/github/stars/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/stargazers)
 ## This package counts the incoming client requests and determines whether a requesting client has reached a specified request threshold per defined timeframe
 
 ## Now with reverse proxy support and changeable timeframe!
@@ -58,4 +58,4 @@ http.createServer((req, res) => {
 
 <br><br><br>
 
-[Back to the Top](#http-ratelimit-v020-----)
+[Back to the Top](#http-ratelimit-v021-----)

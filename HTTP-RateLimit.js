@@ -8,7 +8,8 @@
 
 
 const http = require("http"); // only used to access type declarations
-var lastMinReqs = [], initialized = false, usingReverseProxy = false;
+var lastMinReqs = [], initialized = false;
+let useReverseProxy = false;
 
 
 
@@ -20,7 +21,9 @@ var lastMinReqs = [], initialized = false, usingReverseProxy = false;
  * @returns {Boolean} true, if initialization succeeded, false if not
  */
 module.exports.init = (timeframe, usingReverseProxy) => {
-    if(usingReverseProxy === true || usingReverseProxy == "true" || usingReverseProxy === 1) usingReverseProxy = true;
+    let revprox = false;
+    if(usingReverseProxy == true) revprox = true;
+    useReverseProxy = revprox;
 
     if(timeframe == null || typeof timeframe != "number") timeframe = 1;
 
@@ -47,16 +50,12 @@ module.exports.init = (timeframe, usingReverseProxy) => {
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
 module.exports.isRateLimited = (req, requestLimitPerTimeframe) => {
-    if(typeof requestLimitPerMinute != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
+    if(typeof requestLimitPerTimeframe != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
     let ipaddr = "", limitC = 0;
 
-    if(usingReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
-    else if(usingReverseProxy === true && req.headers["x-forwarded-for"] != null) ipaddr = req.headers["x-forwarded-for"]; // if reverse proxy is used, pull IP from x-forwarded-for header
-    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
-
-    ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
+    ipaddr = getIpaddr(req);
 
     for(let i = 0; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr.toString()) limitC++;
 
@@ -74,9 +73,20 @@ module.exports.inboundRequest = req => {
 
     let ipaddr = "";
 
-    if(usingReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
-    else if(usingReverseProxy === true && req.headers["x-forwarded-for"] != null) ipaddr = req.headers["x-forwarded-for"]; // if reverse proxy is used, pull IP from x-forwarded-for header
-    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+    ipaddr = getIpaddr(req);
 
     lastMinReqs.push(ipaddr.toString());
+}
+
+function getIpaddr(req) {
+    let ipaddr = "";
+
+    if(useReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
+    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"].split(",")[0]; // if reverse proxy is used, pull IP from x-forwarded-for header
+    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && !req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"];
+    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+
+    ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
+
+    return ipaddr;
 }
