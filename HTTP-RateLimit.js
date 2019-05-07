@@ -1,6 +1,6 @@
 /**
  * This module is used together with the NodeJS http or https module.
- * It counts the requests per minute and checks if the requester has exceeded a set amount of requests per minute based on their IP address.
+ * It counts the requests per minute and checks if the requester has exceeded a set amount of requests per timeframe based on their IP address.
  * 
  * @author Sv443 <sven.fehler@web.de> (https://sv443.net/)
  * @license MIT
@@ -8,21 +8,25 @@
 
 
 const http = require("http"); // only used to access type declarations
-var lastMinReqs = [], initialized = false;
+var lastMinReqs = [], initialized = false, usingReverseProxy = false;
 
 
 
 
 /**
  * Use this function to initialize HTTP-RateLimit. This has to be done before calling any other method
+ * @param {Number} [timeframe=1] Specify the timeframe here
+ * @param {Boolean} [usingReverseProxy=false] Set this to true, if you are using a reverse proxy so the IP address gets pulled from the x-forwarded-for header instead
  * @returns {Boolean} true, if initialization succeeded, false if not
  */
-module.exports.init = () => {
+module.exports.init = (timeframe, usingReverseProxy) => {
+    if(usingReverseProxy === true || usingReverseProxy == "true" || usingReverseProxy === 1) usingReverseProxy = true;
+
+    if(timeframe == null || typeof timeframe != "number") timeframe = 1;
+
     if(initialized == false) {
         try {
-            setInterval(() => {
-                lastMinReqs = [];
-            }, 1000 * 60);
+            setInterval(() => lastMinReqs = [], 1000 * 60 * timeframe);
 
             initialized = true;
 
@@ -37,21 +41,26 @@ module.exports.init = () => {
 
 /**
  * Use this to check if the request sender has to be rate limited or not. Returns a boolean value
- * @param {http.ClientRequest} req Inbound client request
- * @param {Number} requestLimitPerMinute The limit of requests a single client can make per minute before being rate limited
+ * @param {http.IncomingMessage} req Inbound client request
+ * @param {Number} requestLimitPerTimeframe The limit of requests a single client can make per before defined timeframe before being rate limited
  * @returns {Boolean} true, if the sender has to be rate limited, false if not
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
-module.exports.isRateLimited = (req, requestLimitPerMinute) => {
-    if(typeof requestLimitPerMinute != "number" || requestLimitPerMinute < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
+module.exports.isRateLimited = (req, requestLimitPerTimeframe) => {
+    if(typeof requestLimitPerMinute != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
-    let ipaddr = req.connection.remoteAddress, limitC = 0;
+    let ipaddr = "", limitC = 0;
+
+    if(usingReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
+    else if(usingReverseProxy === true && req.headers["x-forwarded-for"] != null) ipaddr = req.headers["x-forwarded-for"]; // if reverse proxy is used, pull IP from x-forwarded-for header
+    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+
     ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
 
     for(let i = 0; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr.toString()) limitC++;
 
-    return (limitC > requestLimitPerMinute);
+    return (limitC > requestLimitPerTimeframe);
 }
 
 /**
@@ -63,8 +72,11 @@ module.exports.isRateLimited = (req, requestLimitPerMinute) => {
 module.exports.inboundRequest = req => {
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
-    let ipaddr = req.connection.remoteAddress;
-    ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
+    let ipaddr = "";
+
+    if(usingReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
+    else if(usingReverseProxy === true && req.headers["x-forwarded-for"] != null) ipaddr = req.headers["x-forwarded-for"]; // if reverse proxy is used, pull IP from x-forwarded-for header
+    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
 
     lastMinReqs.push(ipaddr.toString());
 }
