@@ -69,11 +69,16 @@ const isRateLimited = (req, requestLimitPerTimeframe) => {
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
 const inboundRequest = req => {
-    if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
+    try {
+        if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
-    let ipaddr = "";
+        let ipaddr = "";
 
-    ipaddr = getIpaddr(req);
+        ipaddr = getIpaddr(req);
+    }
+    catch(err) {
+        ipaddr = "ERR_TEMPFIX";
+    }
 
     lastMinReqs.push(ipaddr.toString());
 }
@@ -88,7 +93,12 @@ function getIpaddr(req) {
 
     ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
 
-    return ipaddr;
+    try {
+        return ipaddr.toString();
+    }
+    catch(err) {
+        return ipaddr;
+    }
 }
 
 module.exports = { init, isRateLimited, inboundRequest }
