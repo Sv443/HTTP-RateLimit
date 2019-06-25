@@ -69,10 +69,9 @@ const isRateLimited = (req, requestLimitPerTimeframe) => {
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
 const inboundRequest = req => {
+    let ipaddr = "";
     try {
         if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
-
-        let ipaddr = "";
 
         ipaddr = getIpaddr(req);
     }
