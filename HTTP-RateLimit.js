@@ -20,7 +20,7 @@ let useReverseProxy = false;
  * @param {Boolean} [usingReverseProxy=false] Set this to true, if you are using a reverse proxy so the IP address gets pulled from the x-forwarded-for header instead
  * @returns {Boolean} true, if initialization succeeded, false if not
  */
-module.exports.init = (timeframe, usingReverseProxy) => {
+const init = (timeframe, usingReverseProxy) => {
     let revprox = false;
     if(usingReverseProxy == true) revprox = true;
     useReverseProxy = revprox;
@@ -49,7 +49,7 @@ module.exports.init = (timeframe, usingReverseProxy) => {
  * @returns {Boolean} true, if the sender has to be rate limited, false if not
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
-module.exports.isRateLimited = (req, requestLimitPerTimeframe) => {
+const isRateLimited = (req, requestLimitPerTimeframe) => {
     if(typeof requestLimitPerTimeframe != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
@@ -68,7 +68,7 @@ module.exports.isRateLimited = (req, requestLimitPerTimeframe) => {
  * @returns {void}
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
-module.exports.inboundRequest = req => {
+const inboundRequest = req => {
     try {
         if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
@@ -100,3 +100,5 @@ function getIpaddr(req) {
         return ipaddr;
     }
 }
+
+module.exports = { init, isRateLimited, inboundRequest }
