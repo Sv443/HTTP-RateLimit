@@ -20,7 +20,7 @@ let useReverseProxy = false;
  * @param {Boolean} [usingReverseProxy=false] Set this to true, if you are using a reverse proxy so the IP address gets pulled from the x-forwarded-for header instead
  * @returns {Boolean} true, if initialization succeeded, false if not
  */
-const init = (timeframe, usingReverseProxy) => {
+module.exports.init = (timeframe, usingReverseProxy) => {
     let revprox = false;
     if(usingReverseProxy == true) revprox = true;
     useReverseProxy = revprox;
@@ -49,7 +49,7 @@ const init = (timeframe, usingReverseProxy) => {
  * @returns {Boolean} true, if the sender has to be rate limited, false if not
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
-const isRateLimited = (req, requestLimitPerTimeframe) => {
+module.exports.isRateLimited = (req, requestLimitPerTimeframe) => {
     if(typeof requestLimitPerTimeframe != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
@@ -68,12 +68,17 @@ const isRateLimited = (req, requestLimitPerTimeframe) => {
  * @returns {void}
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
-const inboundRequest = req => {
-    if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
+module.exports.inboundRequest = req => {
+    try {
+        if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
-    let ipaddr = "";
+        let ipaddr = "";
 
-    ipaddr = getIpaddr(req);
+        ipaddr = getIpaddr(req);
+    }
+    catch(err) {
+        ipaddr = "ERR_TEMPFIX";
+    }
 
     lastMinReqs.push(ipaddr.toString());
 }
@@ -88,7 +93,10 @@ function getIpaddr(req) {
 
     ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
 
-    return ipaddr;
+    try {
+        return ipaddr.toString();
+    }
+    catch(err) {
+        return ipaddr;
+    }
 }
-
-module.exports = { init, isRateLimited, inboundRequest }
