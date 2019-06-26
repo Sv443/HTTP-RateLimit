@@ -1,0 +1,14 @@
+[0.1.0]
+    - Basic functionality
+    - Fixed timeframe
+
+[0.2.0]
+    - (broken) reverse proxy support
+    - Definable timeframe
+
+[0.2.1]
+    - Fixed reverse proxy support
+
+[0.2.2]
+    - Added this changelog
+    - Fixed "can't read property .toString() of undefined" error

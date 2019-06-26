@@ -7,9 +7,11 @@
  */
 
 
-const http = require("http"); // only used to access type declarations
+const http = require("http"); // only used to access typedefs for JSDoc, not for actual code
 var lastMinReqs = [], initialized = false;
 let useReverseProxy = false;
+let placeholderIP = "00.00.00.00";
+let iX = 0;
 
 
 
@@ -18,17 +20,17 @@ let useReverseProxy = false;
  * Use this function to initialize HTTP-RateLimit. This has to be done before calling any other method
  * @param {Number} [timeframe=1] Specify the timeframe here
  * @param {Boolean} [usingReverseProxy=false] Set this to true, if you are using a reverse proxy so the IP address gets pulled from the x-forwarded-for header instead
- * @returns {Boolean} true, if initialization succeeded, false if not
+ * @returns {(Boolean|String)} true, if initialization succeeded, string containing error message if not successful
  */
 const init = (timeframe, usingReverseProxy) => {
-    let revprox = false;
-    if(usingReverseProxy == true) revprox = true;
-    useReverseProxy = revprox;
-
-    if(timeframe == null || typeof timeframe != "number") timeframe = 1;
-
     if(initialized == false) {
         try {
+            let revprox = false;
+            if(usingReverseProxy == true) revprox = true;
+            useReverseProxy = revprox;
+
+            if(timeframe == null || typeof timeframe != "number") timeframe = 1;
+
             setInterval(() => lastMinReqs = [], 1000 * 60 * timeframe);
 
             initialized = true;
@@ -36,7 +38,7 @@ const init = (timeframe, usingReverseProxy) => {
             return true;
         }
         catch(err) {
-            return false;
+            return err;
         }
     }
     else return true;
@@ -50,53 +52,69 @@ const init = (timeframe, usingReverseProxy) => {
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
 const isRateLimited = (req, requestLimitPerTimeframe) => {
-    if(typeof requestLimitPerTimeframe != "number" || requestLimitPerTimeframe < 1) throw new Error("The attribute requestLimitPerMinute has to be of type \"Number\" and has to be bigger than 0.");
+    if(typeof requestLimitPerTimeframe != "number" || requestLimitPerTimeframe < 1) throw new Error("The parameter \"requestLimitPerMinute\" has to be of type \"Number\" and has to be bigger than 0.");
     if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
     let ipaddr = "", limitC = 0;
 
     ipaddr = getIpaddr(req);
 
-    for(let i = 0; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr.toString()) limitC++;
+    iX = 0; // both for loops have to share one iterator variable
+
+    try {
+        for(let i = iX; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr.toString()) limitC++;
+    }
+    catch(err) {
+        for(let i = iX; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr) limitC++;
+    }
 
     return (limitC > requestLimitPerTimeframe);
 }
 
 /**
  * Put this at the beginning of the inbound request
- * @param {http.ClientRequest} req Inbound client request
- * @returns {void}
+ * @param {http.IncomingMessage} req Inbound client request
  * @throws Will throw an error if HTTP-RateLimit wasn't initialized with the .init() method beforehand
  */
 const inboundRequest = req => {
     let ipaddr = "";
-    try {
-        if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
 
+    if(!initialized) throw new Error("HTTP-RateLimit has to be initialized using the .init() method before calling any other method.");
+
+    try {
         ipaddr = getIpaddr(req);
     }
     catch(err) {
-        ipaddr = "ERR_TEMPFIX";
+        ipaddr = placeholderIP;
     }
 
-    lastMinReqs.push(ipaddr.toString());
+    try {
+        lastMinReqs.push(ipaddr.toString());
+    }
+    catch(err) {
+        lastMinReqs.push(ipaddr);
+    }
 }
 
 function getIpaddr(req) {
-    let ipaddr = "";
+    let ipaddr = placeholderIP, returnIP = placeholderIP;
 
     if(useReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
     else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"].split(",")[0]; // if reverse proxy is used, pull IP from x-forwarded-for header
     else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && !req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"];
-    else ipaddr = "00.00.00.00"; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+    else ipaddr = placeholderIP; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
 
     ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
 
     try {
-        return ipaddr.toString();
+        if(ipaddr != undefined && ipadrr != null) returnIP = ipaddr.toString();
+        else returnIP = placeholderIP;
     }
     catch(err) {
-        return ipaddr;
+        returnIP = placeholderIP;
+    }
+    finally {
+        return returnIP;
     }
 }
 
