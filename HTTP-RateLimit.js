@@ -1,6 +1,6 @@
 /**
- * This module is used together with the NodeJS http or https module.
- * It counts the requests per minute and checks if the requester has exceeded a set amount of requests per timeframe based on their IP address.
+ * This module is used together with the preinstalled http or https package
+ * It counts the requests per minute and checks if the requester has exceeded a set amount of requests per timeframe based on their IP address
  * 
  * @author Sv443 <sven.fehler@web.de> (https://sv443.net/)
  * @license MIT
@@ -62,7 +62,7 @@ const isRateLimited = (req, requestLimitPerTimeframe) => {
     iX = 0; // both for loops have to share one iterator variable
 
     try {
-        for(let i = iX; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr.toString()) limitC++;
+        for(let i = iX; i < lastMinReqs.length; i++) if(lastMinReqs[i] == softToString(ipaddr)) limitC++;
     }
     catch(err) {
         for(let i = iX; i < lastMinReqs.length; i++) if(lastMinReqs[i] == ipaddr) limitC++;
@@ -89,26 +89,52 @@ const inboundRequest = req => {
     }
 
     try {
-        lastMinReqs.push(ipaddr.toString());
+        lastMinReqs.push(softToString(ipaddr));
     }
     catch(err) {
         lastMinReqs.push(ipaddr);
     }
 }
 
+/**
+ * Tries to convert a variable to string, else returns a placeholder string
+ * @param {*} variable 
+ * @returns {String}
+ */
+function softToString(variable) {
+    try {
+        return variable.toString();
+    }
+    catch(err) {
+        return "NaS";
+    }
+}
+
+/**
+ * Extracts the requestee's IP address from a HTTP request (also supports reverse proxy)
+ * @param {http.IncomingMessage} req Inbound client request
+ */
 function getIpaddr(req) {
-    let ipaddr = placeholderIP, returnIP = placeholderIP;
+    var ipaddr = placeholderIP;
+    var returnIP = placeholderIP;
 
-    if(useReverseProxy !== true) ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
-    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"].split(",")[0]; // if reverse proxy is used, pull IP from x-forwarded-for header
-    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && !req.headers["x-forwarded-for"].includes(",")) ipaddr = req.headers["x-forwarded-for"];
-    else ipaddr = placeholderIP; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+    if(useReverseProxy !== true) {
+        ipaddr = req.connection.remoteAddress; // if no reverse proxy is used, pull IP from request's remote connection
+    }
+    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && req.headers["x-forwarded-for"].includes(",")) {
+        ipaddr = req.headers["x-forwarded-for"].split(",")[0]; // if reverse proxy is used, pull IP from x-forwarded-for header
+    }
+    else if(useReverseProxy === true && req.headers["x-forwarded-for"] != null && !req.headers["x-forwarded-for"].includes(",")) {
+        ipaddr = req.headers["x-forwarded-for"];
+    }
+    else {
+        ipaddr = placeholderIP; // only in the rarest case (when both methods of obtaining the IP fail) a placeholder IP address will be used
+    }
 
-    ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):undefined));
+    ipaddr = (ipaddr.length<15?ipaddr:(ipaddr.substr(0,7)==='::ffff:'?ipaddr.substr(7):placeholderIP));
 
     try {
-        if(ipaddr != undefined && ipadrr != null) returnIP = ipaddr.toString();
-        else returnIP = placeholderIP;
+        returnIP = softToString(ipaddr);
     }
     catch(err) {
         returnIP = placeholderIP;

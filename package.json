@@ -1,30 +1,6 @@
 {
-  "_from": "http-ratelimit",
-  "_id": "http-ratelimit@0.2.2",
-  "_inBundle": false,
-  "_integrity": "sha512-69g3DxfNoWpIMNv+vzKvQrc5oTPvlMeq1EXVw1CdP2a4GS7IycnToJi4kyjplDewCS+eBz/XJSfIZADx2jtYPQ==",
-  "_location": "/http-ratelimit",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "http-ratelimit",
-    "name": "http-ratelimit",
-    "escapedName": "http-ratelimit",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/http-ratelimit/-/http-ratelimit-0.2.1.tgz",
-  "_shasum": "c8a5ef9bb026f6e877c603ce8dc0d559dea43a07",
-  "_spec": "http-ratelimit",
-  "_where": "F:\\Code_R\\HTTP-RateLimit\\0.2.2",
   "author": {
-    "name": "Sv443"
+    "name": "Sv443 <sven.fehler@web.de> (https://sv443.net/)"
   },
   "bugs": {
     "url": "https://github.com/Sv443/HTTP-RateLimit/issues"
@@ -54,5 +30,5 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.2.2"
+  "version": "0.2.3"
 }
