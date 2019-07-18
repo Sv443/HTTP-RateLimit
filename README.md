@@ -1,4 +1,4 @@
-# HTTP-RateLimit v0.2.2 <br> [![](https://img.shields.io/github/license/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/blob/master/LICENSE) [![](https://img.shields.io/badge/JSDoc-v3.5.5-green.svg?style=flat-square)](http://usejsdoc.org/) [![](https://img.shields.io/github/issues/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/issues) [![](https://img.shields.io/github/stars/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/stargazers)
+# HTTP-RateLimit v0.2.3 <br> [![](https://img.shields.io/github/license/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/blob/master/LICENSE) [![](https://img.shields.io/badge/JSDoc-v3.5.5-green.svg?style=flat-square)](http://usejsdoc.org/) [![](https://img.shields.io/github/issues/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/issues) [![](https://img.shields.io/github/stars/Sv443/HTTP-RateLimit.svg?style=flat-square)](https://github.com/Sv443/HTTP-RateLimit/stargazers)
 ## This package counts the incoming client requests and determines whether a requesting client has reached a specified request threshold per defined timeframe
 
 
@@ -55,9 +55,9 @@ http.createServer((req, res) => {
 <br><br><br><br><br>
 
 # Function List:
-- `rateLimit.init(timeframe: Number, usingReverseProxy: Boolean)` - Initializes all variables etc.
-- `rateLimit.inboundRequest(req: http.IncomingMessage)` - Adds the request's IP address to the list of requests per timeframe
-- `rateLimit.isRateLimited(req: http.IncomingMessage, requestLimitPerMinute: Number)` - Checks if the request's IP address occurs more than `requestLimitPerMinute` times in the above mentioned list and should therefore be rate limited
+- `rateLimit.init(timeframe: Number, usingReverseProxy: Boolean)` - Initializes all variables etc. | If you are using a reverse proxy, make sure to set the second parameter to true as then the IP address has to be pulled from the "x-forwarded-for" request header
+- `rateLimit.inboundRequest(req: http.IncomingMessage)` - Adds the requestee's IP address to the list of requests per timeframe
+- `rateLimit.isRateLimited(req: http.IncomingMessage, requestLimitPerMinute: Number)` - Checks if the request's IP address occurs more than `requestLimitPerMinute` times in the above mentioned list and should therefore be rate limited | Returns true or false
 
 <br><br><br>
 

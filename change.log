@@ -12,3 +12,6 @@
 [0.2.2]
     - Added this changelog
     - Fixed "can't read property .toString() of undefined" error
+
+[0.2.3]
+    - Fixed fatal wrong IP bug (lead to rate limit blocking even though a client didn't exceed the limit, simply because all clients essentially had the same IP and were treated as a single client)
